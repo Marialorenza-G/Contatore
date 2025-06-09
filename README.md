@@ -42,7 +42,7 @@ L’interfaccia è creata dinamicamente usando JavaScript puro, senza framework 
 
 ## Prova l'applicazione online
 
-[Prova il contatore su Netlify]
+[Prova il contatore su Netlify] https://contatore-js.netlify.app/
 
 ---
 
