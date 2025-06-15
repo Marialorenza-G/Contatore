@@ -1,16 +1,16 @@
-// Funzione per creare un elemento DOM in modo dinamico
-// Accetta:
-// - tagName: il nome del tag HTML (es. 'div', 'h1', 'button')
-// - options: un oggetto con proprietà opzionali come 'id', 'class', 'textContent', 'dataset'
-function creaElementoDOM(tagName, options = {}) {
+// Function to dynamically create a DOM element
+// Accepts:
+// - tagName: the HTML tag name (e.g., 'div', 'h1', 'button')
+// - options: an object with optional properties like 'id', 'class', 'textContent', 'dataset', 'attributes'
+function createElementDOM(tagName, options = {}) {
     const element = document.createElement(tagName);
 
     if (options.id) {
         element.id = options.id;
     }
     if (options.class) {
-        // Se 'class' è una stringa, la imposta.
-        // Se è un array di stringhe, aggiunge tutte le classi.
+        // If 'class' is a string, set it.
+        // If it's an array of strings, add all classes.
         if (Array.isArray(options.class)) {
             options.class.forEach(cls => element.classList.add(cls));
         } else {
@@ -21,6 +21,12 @@ function creaElementoDOM(tagName, options = {}) {
         element.textContent = options.textContent;
     }
     
+    // Add custom attributes if provided
+    if (options.attributes) {
+        for (const key in options.attributes) {
+            element.setAttribute(key, options.attributes[key]);
+        }
+    }
 
     if (options.dataset) {
         for (const key in options.dataset) {
@@ -31,37 +37,40 @@ function creaElementoDOM(tagName, options = {}) {
     return element;
 }
 
-// 1. Creazione del contenitore principale dell'applicazione
-const container = creaElementoDOM("div", { id: "container" });
+// 1. Create the main application container
+const appContainer = createElementDOM("div", { id: "app-container" }); // Renamed ID for clarity
 
-// 2. Creazione del titolo dell'app
-const title = creaElementoDOM("h1", { textContent: "Contatore" });
+// 2. Create the app title
+const appTitle = createElementDOM("h1", { textContent: "Counter" });
 
-// 3. Creazione dell'elemento che visualizzerà il valore del contatore
-const counterDisplay = creaElementoDOM("div", { id: "counter", textContent: "0" });
+// 3. Create the element that will display the counter value
+const counterDisplayElement = createElementDOM("div", { id: "counter-display", textContent: "0" }); // Renamed ID for clarity
 
-// 4. Creazione dei pulsanti utilizzando la funzione creaElementoDOM
-// Aggiungiamo un attributo 'data-action' per identificare l'azione del pulsante
-const minusButton = creaElementoDOM("button", { textContent: "−", class: "btn", dataset: { action: "minus" } });
-const plusButton = creaElementoDOM("button", { textContent: "+", class: "btn", dataset: { action: "plus" } });
-const resetButton = creaElementoDOM("button", { textContent: "Reset", class: "btn", dataset: { action: "reset" } });
+// 4. Create the buttons using the createElementDOM function
+// Add a 'data-action' attribute to identify the button's action
+const minusButton = createElementDOM("button", { textContent: "−", class: "btn", dataset: { action: "minus" } });
+const plusButton = createElementDOM("button", { textContent: "+", class: "btn", dataset: { action: "plus" } });
+const resetButton = createElementDOM("button", { textContent: "Reset", class: "btn", dataset: { action: "reset" } });
 
-// Creazione del contenitore per i pulsanti '+' e '−'
-const buttonGroup = creaElementoDOM("div", { class: "button-group" }); // Aggiunta una classe per stile opzionale
-buttonGroup.appendChild(minusButton);
-buttonGroup.appendChild(plusButton);
+// Create a group for the '+' and '−' buttons
+const buttonGroupElement = createElementDOM("div", { class: "button-group" });
+buttonGroupElement.appendChild(minusButton);
+buttonGroupElement.appendChild(plusButton);
 
+// Create a wrapper for all action buttons (plus, minus, reset) to apply single event delegation
+const buttonsWrapper = createElementDOM("div", { class: "buttons-wrapper" });
+buttonsWrapper.appendChild(buttonGroupElement); // Add the group of +/- buttons
+buttonsWrapper.appendChild(resetButton);       // Add the reset button
 
-// 5. Logica del contatore
+// 5. Counter logic
 let count = 0;
 
-// IMPLEMENTAZIONE DELLA EVENT DELEGATION
-// Invece di ascoltare i clic su ogni singolo pulsante ('minusButton', 'plusButton'), ascoltiamo i clic sul loro contenitore comune: 'buttonGroup'.
-
-buttonGroup.addEventListener("click", (event) => {
+// IMPLEMENTATION OF EVENT DELEGATION
+// Instead of listening for clicks on each individual button, we listen for clicks on their common parent: 'buttonsWrapper'.
+buttonsWrapper.addEventListener("click", (event) => {
     const clickedElement = event.target;
 
-    // Controlliamo se l'elemento cliccato è un pulsante e ha un attributo 'data-action'
+    // Check if the clicked element is a button and has a 'data-action' attribute
     if (clickedElement.matches('.btn') && clickedElement.dataset.action) {
         const action = clickedElement.dataset.action; 
 
@@ -69,26 +78,19 @@ buttonGroup.addEventListener("click", (event) => {
             count++;
         } else if (action === "minus") {
             count--;
+        } else if (action === "reset") { // Handle reset action within the same listener
+            count = 0;
         }
-        // Aggiorna il display del contatore con il nuovo valore
-        counterDisplay.textContent = count;
+        // Update the counter display with the new value
+        counterDisplayElement.textContent = count;
     }
 });
 
-// Il pulsante Reset ha una logica a sé stante e non fa parte del buttonGroup per +/- quindi il suo event listener può rimanere separato, a meno che non si voglia
-// implementare Event Delegation su un contenitore genitore di tutti i pulsanti.
-resetButton.addEventListener("click", () => {
-    count = 0;
-    counterDisplay.textContent = count;
-});
+// 6. Mount all dynamically created elements to the HTML page
+// Add the title, counter display, and the buttons wrapper inside the main container.
+appContainer.appendChild(appTitle);
+appContainer.appendChild(counterDisplayElement);
+appContainer.appendChild(buttonsWrapper); // Append the wrapper containing all buttons
 
-
-// 6. Montaggio di tutti gli elementi creati dinamicamente nella pagina HTML
-// Aggiungiamo il titolo, il display del contatore, il gruppo di pulsanti e il pulsante reset all'interno del contenitore principale.
-container.appendChild(title);
-container.appendChild(counterDisplay);
-container.appendChild(buttonGroup);
-container.appendChild(resetButton);
-
-// Infine, aggiungiamo il contenitore principale al corpo del documento HTML
-document.body.appendChild(container);
+// Finally, add the main container to the HTML document body
+document.body.appendChild(appContainer);
